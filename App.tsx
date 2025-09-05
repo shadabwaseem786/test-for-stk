@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { STOCKS, REFRESH_INTERVAL_SECONDS } from './constants';
 import { ConnectionStatus } from './types';
 import type { StockState, ChatMessage, SignalType, NewsItem } from './types';
 import { getStockSignal, getChatResponse, getMarketSentiment, getMarketNews, AIError } from './services/geminiService';
-import { generateCandles } from './utils/mockData';
+import { fetchStockCandles } from './utils/mockData';
 import { StockCard } from './components/StockCard';
 import { ChatModal } from './components/ChatModal';
 import { MarketNews } from './components/MarketNews';
@@ -46,7 +45,7 @@ const App: React.FC = () => {
         }));
         
         try {
-            const newCandles = generateCandles();
+            const newCandles = await fetchStockCandles(symbol);
             const signal = await getStockSignal(symbol, newCandles);
             setStockData(prev => ({
                 ...prev,
@@ -115,7 +114,7 @@ const App: React.FC = () => {
       }));
 
       try {
-        const responseText = await getChatResponse(symbol, stockData[symbol].candles, currentHistory);
+        const responseText = await scheduleApiCall(() => getChatResponse(symbol, stockData[symbol].candles, currentHistory));
         const modelMessage: ChatMessage = { role: 'model', text: responseText };
         setStockData(prev => ({
           ...prev,
@@ -218,21 +217,23 @@ const App: React.FC = () => {
             <main className="max-w-screen-2xl mx-auto">
                 <header className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                     <div className="text-center sm:text-left">
-                        <h1 className="text-4xl font-extrabold tracking-tight text-white">AI Trading Desk</h1>
-                        <p className="mt-2 text-lg text-gray-400">Live Indian Market Analysis by Gemini AI</p>
+                        <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-slate-200 to-slate-400 bg-clip-text text-transparent text-glow">
+                          AI Trading Desk
+                        </h1>
+                        <p className="mt-2 text-lg text-slate-400">Live Indian Market Analysis by Gemini AI</p>
                     </div>
                     <div className="flex items-center gap-4">
-                         <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2.5 bg-slate-800/50 border border-slate-700 px-3 py-1.5 rounded-full">
                              <div className="relative flex h-3 w-3">
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isRefreshingAll ? 'bg-yellow-400' : 'bg-green-400'} opacity-75`}></span>
-                                <span className={`relative inline-flex rounded-full h-3 w-3 ${isRefreshingAll ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isRefreshingAll ? 'bg-amber-400' : 'bg-cyan-400'} opacity-75`}></span>
+                                <span className={`relative inline-flex rounded-full h-3 w-3 ${isRefreshingAll ? 'bg-amber-500' : 'bg-cyan-500'}`}></span>
                              </div>
-                             <span className="text-sm font-medium text-gray-300">{isRefreshingAll ? 'Updating' : 'Live'}</span>
+                             <span className="text-sm font-semibold text-slate-300">{isRefreshingAll ? 'Updating' : 'Live'}</span>
                          </div>
                          <button
                             onClick={handleRefreshAll}
                             disabled={isRefreshingAll}
-                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900 disabled:bg-indigo-500/50 disabled:cursor-not-allowed transition-all"
+                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-slate-900 disabled:bg-indigo-500/50 disabled:cursor-not-allowed transition-all"
                         >
                             {isRefreshingAll ? 'Refreshing...' : 'Refresh All'}
                         </button>
@@ -253,15 +254,15 @@ const App: React.FC = () => {
 
                     {/* Sidebar */}
                     <aside className="lg:col-span-1 space-y-8 sticky top-8">
-                        <section className="bg-gray-800/60 backdrop-blur-sm border border-gray-700 rounded-lg p-6 shadow-lg">
-                            <h2 className="text-xl font-bold text-gray-200 mb-4">Overall Market Sentiment</h2>
+                        <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-lg p-6 shadow-2xl">
+                            <h2 className="text-xl font-bold text-slate-200 mb-4">Overall Market Sentiment</h2>
                             {isSentimentLoading ? (
                                 <div className="animate-pulse space-y-3">
-                                    <div className="h-4 bg-gray-700 rounded w-full"></div>
-                                    <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                                    <div className="h-4 bg-slate-700 rounded w-full"></div>
+                                    <div className="h-4 bg-slate-700 rounded w-3/4"></div>
                                 </div>
                             ) : (
-                                <p className="text-gray-300 leading-relaxed">{marketSentiment}</p>
+                                <p className="text-slate-300 leading-relaxed">{marketSentiment}</p>
                             )}
                         </section>
 
@@ -269,7 +270,7 @@ const App: React.FC = () => {
 
                         <MarketNews news={marketNews} isLoading={isMarketNewsLoading} />
 
-                        <footer className="text-center text-gray-500 text-xs">
+                        <footer className="text-center text-slate-500 text-xs">
                             <p>This is a demo application. Data is randomly generated and signals are for illustrative purposes only.</p>
                             <p>This is not financial advice.</p>
                         </footer>

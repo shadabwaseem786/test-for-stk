@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -125,14 +124,14 @@ const detectCandlestickPatterns = (candles: Candle[]): DetectedPattern[] => {
         const isPrevDown = prev.close < prev.open;
         const isCurrUp = candle.close > candle.open;
         if (isPrevDown && isCurrUp && candle.open < prev.close && candle.close > prev.open) {
-             patterns.push({ index: i, name: 'Bullish Engulfing', short: 'BE', position: 'bottom', color: '#22c55e' });
+             patterns.push({ index: i, name: 'Bullish Engulfing', short: 'BE', position: 'bottom', color: '#22d3ee' });
         }
         
         // Bearish Engulfing
         const isPrevUp = prev.close > prev.open;
         const isCurrDown = candle.close < candle.open;
         if (isPrevUp && isCurrDown && candle.open > prev.close && candle.close < prev.open) {
-            patterns.push({ index: i, name: 'Bearish Engulfing', short: 'BE', position: 'top', color: '#ef4444' });
+            patterns.push({ index: i, name: 'Bearish Engulfing', short: 'BE', position: 'top', color: '#f471b5' });
         }
 
         // Hammer
@@ -142,7 +141,7 @@ const detectCandlestickPatterns = (candles: Candle[]): DetectedPattern[] => {
         const lowerShadow = bodyLow - candle.low;
         const upperShadow = candle.high - bodyHigh;
         if (isDownTrend && bodySize > 0 && lowerShadow > bodySize * 2 && upperShadow < bodySize * 0.5) {
-             patterns.push({ index: i, name: 'Hammer', short: 'H', position: 'bottom', color: '#22c55e' });
+             patterns.push({ index: i, name: 'Hammer', short: 'H', position: 'bottom', color: '#22d3ee' });
         }
     });
 
@@ -198,21 +197,21 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({ candles, signalT
     };
 
     if (candles.length < 2) {
-        return <div className="h-24 w-full flex items-center justify-center text-gray-600 animate-pulse">Loading Chart...</div>;
+        return <div className="h-24 w-full flex items-center justify-center text-slate-600 animate-pulse">Loading Chart...</div>;
     }
 
-    let strokeColor = '#64748b';
+    let strokeColor = '#64748b'; // slate-500
     let gradientStartColor = 'rgba(100, 116, 139, 0.4)';
     let gradientEndColor = 'rgba(100, 116, 139, 0)';
     if (signalType === 'BUY') {
-        strokeColor = '#22c55e';
-        gradientStartColor = 'rgba(34, 197, 94, 0.4)';
-        gradientEndColor = 'rgba(34, 197, 94, 0)';
+        strokeColor = 'var(--color-buy)';
+        gradientStartColor = 'rgba(34, 211, 238, 0.4)';
+        gradientEndColor = 'rgba(34, 211, 238, 0)';
     }
     if (signalType === 'SELL') {
-        strokeColor = '#ef4444';
-        gradientStartColor = 'rgba(239, 68, 68, 0.4)';
-        gradientEndColor = 'rgba(239, 68, 68, 0)';
+        strokeColor = 'var(--color-sell)';
+        gradientStartColor = 'rgba(244, 113, 181, 0.4)';
+        gradientEndColor = 'rgba(244, 113, 181, 0)';
     }
 
     const chartData = {
@@ -229,21 +228,21 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({ candles, signalT
                 },
             },
             { type: 'bar' as const, label: 'Volume', data: candles.map(c => c.volume), backgroundColor: 'rgba(100, 116, 139, 0.2)', borderColor: 'transparent', yAxisID: 'y_volume', order: 3, hidden: !visibleIndicators.volume },
-            { type: 'line' as const, label: 'RSI Overbought', data: Array(candles.length).fill(70), borderColor: 'rgba(239, 68, 68, 0.3)', borderWidth: 1, borderDash: [2, 2], pointRadius: 0, yAxisID: 'y_rsi', order: 6, fill: { target: { value: 100 }, above: 'rgba(239, 68, 68, 0.05)' }, hidden: !visibleIndicators.rsi },
-            { type: 'line' as const, label: 'RSI Oversold', data: Array(candles.length).fill(30), borderColor: 'rgba(34, 197, 94, 0.3)', borderWidth: 1, borderDash: [2, 2], pointRadius: 0, yAxisID: 'y_rsi', order: 6, fill: { target: { value: 0 }, below: 'rgba(34, 197, 94, 0.05)' }, hidden: !visibleIndicators.rsi },
+            { type: 'line' as const, label: 'RSI Overbought', data: Array(candles.length).fill(70), borderColor: 'rgba(244, 113, 181, 0.3)', borderWidth: 1, borderDash: [2, 2], pointRadius: 0, yAxisID: 'y_rsi', order: 6, fill: { target: { value: 100 }, above: 'rgba(244, 113, 181, 0.05)' }, hidden: !visibleIndicators.rsi },
+            { type: 'line' as const, label: 'RSI Oversold', data: Array(candles.length).fill(30), borderColor: 'rgba(34, 211, 238, 0.3)', borderWidth: 1, borderDash: [2, 2], pointRadius: 0, yAxisID: 'y_rsi', order: 6, fill: { target: { value: 0 }, below: 'rgba(34, 211, 238, 0.05)' }, hidden: !visibleIndicators.rsi },
             { type: 'line' as const, label: 'RSI', data: rsiHistory, borderColor: '#a855f7', borderWidth: 1, pointRadius: 0, tension: 0.4, yAxisID: 'y_rsi', order: 5, hidden: !visibleIndicators.rsi },
             { type: 'bar' as const, label: 'MACD Hist.', data: macdHistory.histogram,
                 backgroundColor: (context: ScriptableContext<"bar">) => {
                     const value = context.raw as number | null;
                     if (value === null) return 'transparent';
-                    return value > 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                    return value > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(244, 113, 181, 0.4)';
                 },
                 yAxisID: 'y_macd', order: 5, hidden: !visibleIndicators.macd
             },
             { type: 'line' as const, label: 'MACD Line', data: macdHistory.macdLine, borderColor: '#3b82f6', borderWidth: 1, pointRadius: 0, tension: 0.4, yAxisID: 'y_macd', order: 4, hidden: !visibleIndicators.macd },
             { type: 'line' as const, label: 'Signal Line', data: macdHistory.signalLine, borderColor: '#f97316', borderWidth: 1, pointRadius: 0, tension: 0.4, yAxisID: 'y_macd', order: 4, hidden: !visibleIndicators.macd },
-            { type: 'line' as const, label: 'MACD Buy Signal', data: buySignals, pointStyle: 'triangle', pointRadius: 6, pointRotation: 0, pointBackgroundColor: '#3b82f6', pointBorderColor: 'rgba(255, 255, 255, 0.7)', hoverRadius: 10, showLine: false, order: 0 },
-            { type: 'line' as const, label: 'MACD Sell Signal', data: sellSignals, pointStyle: 'triangle', pointRadius: 6, pointRotation: 180, pointBackgroundColor: '#a855f7', pointBorderColor: 'rgba(255, 255, 255, 0.7)', hoverRadius: 10, showLine: false, order: 0 }
+            { type: 'line' as const, label: 'MACD Buy Signal', data: buySignals, pointStyle: 'triangle', pointRadius: 6, pointRotation: 0, pointBackgroundColor: 'var(--color-buy)', pointBorderColor: 'rgba(255, 255, 255, 0.7)', hoverRadius: 10, showLine: false, order: 0 },
+            { type: 'line' as const, label: 'MACD Sell Signal', data: sellSignals, pointStyle: 'triangle', pointRadius: 6, pointRotation: 180, pointBackgroundColor: 'var(--color-sell)', pointBorderColor: 'rgba(255, 255, 255, 0.7)', hoverRadius: 10, showLine: false, order: 0 }
         ],
     };
 
@@ -313,15 +312,15 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({ candles, signalT
             <Line ref={chartRef} options={options} data={chartData as any} />
             
             <div className="absolute top-1 right-1 flex items-center gap-1.5 opacity-0 group-hover/chart:opacity-100 transition-opacity duration-300 z-10">
-                {isZoomed && <button onClick={handleResetZoom} className="bg-gray-700/50 hover:bg-gray-600/70 text-white text-xs px-2 py-0.5 rounded-md backdrop-blur-sm" aria-label="Reset zoom">Reset</button>}
+                {isZoomed && <button onClick={handleResetZoom} className="bg-slate-700/50 hover:bg-slate-600/70 text-white text-xs px-2 py-0.5 rounded-md backdrop-blur-sm" aria-label="Reset zoom">Reset</button>}
                 
-                <div className="flex items-center bg-gray-700/50 backdrop-blur-sm rounded-md p-0.5">
+                <div className="flex items-center bg-slate-700/50 backdrop-blur-sm rounded-md p-0.5">
                     {(Object.keys(visibleIndicators) as Array<keyof typeof visibleIndicators>).map(key => (
                         <button
                             key={key}
                             onClick={() => toggleIndicator(key)}
                             title={`Toggle ${key.toUpperCase()}`}
-                            className={`text-xs px-1.5 py-0.5 rounded transition-colors ${visibleIndicators[key] ? 'bg-indigo-500/80 text-white' : 'text-gray-400 hover:bg-gray-600/70'}`}
+                            className={`text-xs px-1.5 py-0.5 rounded transition-colors ${visibleIndicators[key] ? 'bg-indigo-500/80 text-white' : 'text-slate-400 hover:bg-slate-600/70'}`}
                         >
                             {key === 'patterns' ? 'PATS' : key.toUpperCase()}
                         </button>
@@ -329,7 +328,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({ candles, signalT
                 </div>
             </div>
 
-            <div className="absolute bottom-1 left-2 text-xs text-gray-600 pointer-events-none opacity-0 group-hover/chart:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-1 left-2 text-xs text-slate-600 pointer-events-none opacity-0 group-hover/chart:opacity-100 transition-opacity duration-300">
                 Scroll to zoom, Drag to pan
             </div>
         </div>

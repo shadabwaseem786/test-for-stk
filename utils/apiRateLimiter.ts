@@ -1,6 +1,8 @@
 // A simple queue to manage API calls to respect rate limits.
-// The Gemini free tier has a 60 RPM limit. We target a much lower rate to be safe.
-const MIN_INTERVAL = 2100; // 2.1 seconds for a very safe margin (approx. 28 RPM max)
+// Free tier models can have limits as low as 15 RPM.
+// Previous attempts showed that ~10 RPM failed, while ~6 RPM worked.
+// We are choosing a safer value in between to balance speed and reliability.
+const MIN_INTERVAL = 8100; // 8.1 seconds for a safe margin (approx. 7.4 RPM max)
 
 const requestQueue: Array<{
     apiCall: () => Promise<any>;

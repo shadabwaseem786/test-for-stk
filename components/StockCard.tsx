@@ -1,22 +1,32 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SparklineChart } from './SparklineChart';
 import { StatusIndicator } from './StatusIndicator';
 import { ConnectionStatus } from '../types';
 import type { StockState, SignalType } from '../types';
 
-const getSignalClasses = (type: SignalType | null | undefined): { text: string; bg: string; } => {
+const getSignalClasses = (type: SignalType | null | undefined): { text: string; bg: string; border: string; } => {
     switch (type) {
-        case 'BUY': return { text: 'text-green-200', bg: 'bg-green-500/30' };
-        case 'SELL': return { text: 'text-red-200', bg: 'bg-red-500/30' };
-        case 'HOLD': return { text: 'text-yellow-200', bg: 'bg-yellow-500/30' };
-        default: return { text: 'text-gray-400', bg: 'bg-gray-500/20' };
+        case 'BUY': return { text: 'text-cyan-200', bg: 'bg-cyan-500/20', border: 'border-cyan-500/30' };
+        case 'SELL': return { text: 'text-fuchsia-200', bg: 'bg-fuchsia-500/20', border: 'border-fuchsia-500/30' };
+        case 'HOLD': return { text: 'text-amber-200', bg: 'bg-amber-500/20', border: 'border-amber-500/30' };
+        default: return { text: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/30' };
     }
 };
 
+const getGlowClass = (type: SignalType | null | undefined): string => {
+    if (!type) return '';
+    switch (type) {
+        case 'BUY': return 'glow-border-buy';
+        case 'SELL': return 'glow-border-sell';
+        case 'HOLD': return 'glow-border-hold';
+        default: return '';
+    }
+};
+
+
 const FormattedReason: React.FC<{ text: string }> = ({ text }) => {
     const trimmedText = text.trim();
-    const keywords = ['RSI', 'MACD', 'bullish', 'bearish', 'crossover', 'overbought', 'oversold'];
+    const keywords = ['RSI', 'MACD', 'bullish', 'bearish', 'crossover', 'overbought', 'oversold', 'momentum', 'resistance', 'support'];
     const keywordRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
 
     const highlightKeywords = (sentence: string) => {
@@ -84,36 +94,37 @@ export const StockCard: React.FC<StockCardProps> = ({ stockState, onAskAi }) => 
     }, [stockState.signal]);
 
     const signalClasses = getSignalClasses(signal?.type);
+    const glowClass = getGlowClass(signal?.type);
 
     return (
-        <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-700 rounded-lg p-4 flex flex-col gap-3 shadow-lg hover:border-indigo-500/50 transition-all duration-300 min-h-[430px] group">
+        <div className={`bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-lg p-4 flex flex-col gap-3 shadow-2xl hover:border-indigo-500/50 transition-all duration-300 min-h-[430px] group ${glowClass}`}>
             <header className="flex justify-between items-start">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-100">{symbol}</h2>
+                    <h2 className="text-2xl font-bold text-slate-100">{symbol}</h2>
                     <div className="flex items-center gap-2 mt-1">
                         <StatusIndicator status={status} />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-slate-400">
                              {status === ConnectionStatus.ONLINE ? `Next update in ${countdown.toString().padStart(2, '0')}s` : status.toString()}
                         </span>
                     </div>
                 </div>
                  <div className="relative inline-block group/tooltip" aria-describedby={`tooltip-${symbol}`}>
                     {signal && !error ? (
-                        <p className={`text-sm font-bold px-3 py-1 rounded-full ${signalClasses.bg} ${signalClasses.text} cursor-help`}>
+                        <p className={`text-sm font-bold px-3 py-1 rounded-full ${signalClasses.bg} ${signalClasses.text} cursor-help border ${signalClasses.border}`}>
                             {signal.type}
                         </p>
                     ) : (
-                        status !== ConnectionStatus.OFFLINE && <div className="animate-pulse h-7 w-16 bg-gray-700 rounded-full"></div>
+                        status !== ConnectionStatus.OFFLINE && <div className="animate-pulse h-7 w-16 bg-slate-700 rounded-full"></div>
                     )}
                     
                     <div
                         id={`tooltip-${symbol}`}
                         role="tooltip"
-                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 max-h-48 overflow-y-auto p-3 bg-gray-700 border border-gray-600 rounded-lg shadow-xl text-xs text-gray-300 invisible opacity-0 group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-opacity duration-300 delay-0 group-hover/tooltip:delay-300 z-10 pointer-events-none"
+                        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 max-h-48 overflow-y-auto p-3 bg-slate-700 border border-slate-600 rounded-lg shadow-xl text-xs text-slate-300 invisible opacity-0 group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-opacity duration-300 delay-0 group-hover/tooltip:delay-300 z-10 pointer-events-none"
                     >
-                        <span className="font-bold block mb-2 text-gray-100">AI Analysis:</span>
+                        <span className="font-bold block mb-2 text-slate-100">AI Analysis:</span>
                         {signal?.reason ? <FormattedReason text={signal.reason} /> : "No reason provided."}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-gray-700"></div>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
                     </div>
                  </div>
             </header>
@@ -129,9 +140,9 @@ export const StockCard: React.FC<StockCardProps> = ({ stockState, onAskAi }) => 
                  </button>
             </div>
             
-            <div className={`border-t border-gray-700 pt-3 mt-1 min-h-[96px] rounded-b-lg transition-all duration-500 ${hasNewNews ? 'shadow-[0_0_15px_rgba(79,70,229,0.5)] bg-indigo-900/20' : ''}`}>
+            <div className={`border-t border-slate-700 pt-3 mt-1 min-h-[96px] rounded-b-lg transition-all duration-500 p-2 -m-2 mt-1 ${hasNewNews ? 'shadow-[0_0_15px_rgba(79,70,229,0.5)] bg-indigo-900/20' : ''}`}>
                 <div className="mb-2 flex items-center gap-2">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent News</h3>
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recent News</h3>
                     {hasNewNews && (
                         <div className="relative flex items-center" title="New news available">
                             <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
@@ -153,7 +164,7 @@ export const StockCard: React.FC<StockCardProps> = ({ stockState, onAskAi }) => 
                                   href={item.uri} 
                                   target="_blank" 
                                   rel="noopener noreferrer" 
-                                  className="text-xs text-gray-400 hover:text-indigo-400 transition-colors line-clamp-2 leading-snug"
+                                  className="text-xs text-slate-400 hover:text-indigo-400 transition-colors line-clamp-2 leading-snug"
                                   title={item.title}
                                 >
                                     {item.title}
@@ -165,12 +176,12 @@ export const StockCard: React.FC<StockCardProps> = ({ stockState, onAskAi }) => 
                     <div className="space-y-2">
                         {signal === null && status !== ConnectionStatus.OFFLINE ? (
                             <div className="animate-pulse space-y-2">
-                                <div className="h-3 bg-gray-700 rounded w-full"></div>
-                                <div className="h-3 bg-gray-700 rounded w-5/6"></div>
-                                <div className="h-3 bg-gray-700 rounded w-3/4"></div>
+                                <div className="h-3 bg-slate-700 rounded w-full"></div>
+                                <div className="h-3 bg-slate-700 rounded w-5/6"></div>
+                                <div className="h-3 bg-slate-700 rounded w-3/4"></div>
                             </div>
                         ) : (
-                             signal && <p className="text-xs text-gray-500 italic">No recent news found.</p>
+                             signal && <p className="text-xs text-slate-500 italic">No recent news found.</p>
                         )}
                     </div>
                 )}

@@ -1,5 +1,4 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { Signal, Candle, ChatMessage, SignalType, NewsItem } from '../types';
 
 /**
@@ -209,6 +208,16 @@ export const getStockSignal = async (symbol: string, candles: Candle[]): Promise
         const parsedJson = cleanAndParseJson(response.text);
         
         if (parsedJson.type && parsedJson.reason && Array.isArray(parsedJson.news)) {
+            const ground_truth_news = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(
+                (chunk: any) => ({
+                    title: chunk?.web?.title,
+                    uri: chunk?.web?.uri,
+                })
+            ).filter(news => news.title && news.uri) ?? [];
+            
+            // Prefer grounding metadata if available, otherwise use what the model generated.
+            parsedJson.news = ground_truth_news.length > 0 ? ground_truth_news : parsedJson.news;
+
             return parsedJson as Signal;
         } else {
             throw new Error("Invalid JSON structure received from AI.");
@@ -289,43 +298,39 @@ export const getMarketSentiment = async (signals: Record<string, SignalType>): P
 
 export const getMarketNews = async (): Promise<NewsItem[]> => {
     try {
-        const prompt = "You are a financial news aggregator. Find the 4 most important, recent news headlines related to the Indian stock market (NSE).";
+        const prompt = `
+            You are a financial news aggregator. Find the 4 most important, recent news headlines related to the Indian stock market (NSE).
+            The response should only contain the news articles found by the search tool.
+        `;
 
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            title: {
-                                type: Type.STRING,
-                                description: "The full, recent news headline."
-                            },
-                            uri: {
-                                type: Type.STRING,
-                                description: "The direct URL to the news article."
-                            }
-                        },
-                        required: ["title", "uri"]
-                    }
-                }
             },
         });
         
-        const parsedJson = cleanAndParseJson(response.text);
+        const ground_truth_news = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(
+            (chunk: any) => ({
+                title: chunk?.web?.title,
+                uri: chunk?.web?.uri,
+            })
+        ).filter(news => news.title && news.uri) ?? [];
 
-        if (Array.isArray(parsedJson)) {
-            return parsedJson as NewsItem[];
-        } else {
-            throw new Error("Invalid JSON structure received for market news.");
+        if (ground_truth_news.length > 0) {
+            return ground_truth_news;
         }
 
+        // If grounding metadata is not available for some reason, we must indicate an issue.
+        // We will no longer parse the text response to avoid potential hallucinations.
+        throw new Error("Could not retrieve verifiable news from search tool.");
+
     } catch (error) {
+        if (error instanceof AIError) {
+          // Re-throw AIError to propagate user-friendly message
+          throw error;
+        }
         handleApiError(error, `getMarketNews`);
     }
 };

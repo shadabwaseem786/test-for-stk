@@ -1,11 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Stock Signal</title>
+    <title>AI Trading Desk</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <script type="importmap">
 {
   "imports": {
@@ -20,8 +22,69 @@
   }
 }
 </script>
+<style>
+    :root {
+        --color-buy: #22d3ee; /* Cyan */
+        --color-sell: #f471b5; /* Magenta */
+        --color-hold: #fbbf24; /* Amber */
+        --glow-buy: 0 0 15px rgba(34, 211, 238, 0.6);
+        --glow-sell: 0 0 15px rgba(244, 113, 181, 0.6);
+        --glow-hold: 0 0 15px rgba(251, 191, 36, 0.6);
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a; /* slate-900 */
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 2rem 2rem;
+    }
+    .text-glow {
+        text-shadow: 0 0 8px rgba(255,255,255,0.3);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #1e293b; /* slate-800 */
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: #475569; /* slate-600 */
+        border-radius: 4px;
+        border: 2px solid #1e293b; /* slate-800 */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: #64748b; /* slate-500 */
+    }
+
+    /* Animations */
+    @keyframes glow-border-buy {
+        from { box-shadow: 0 0 8px -2px var(--color-buy); }
+        to { box-shadow: 0 0 12px 2px var(--color-buy); }
+    }
+    @keyframes glow-border-sell {
+        from { box-shadow: 0 0 8px -2px var(--color-sell); }
+        to { box-shadow: 0 0 12px 2px var(--color-sell); }
+    }
+    @keyframes glow-border-hold {
+        from { box-shadow: 0 0 8px -2px var(--color-hold); }
+        to { box-shadow: 0 0 12px 2px var(--color-hold); }
+    }
+
+    .glow-border-buy {
+        animation: glow-border-buy 1.5s ease-in-out infinite alternate;
+    }
+    .glow-border-sell {
+        animation: glow-border-sell 1.5s ease-in-out infinite alternate;
+    }
+    .glow-border-hold {
+        animation: glow-border-hold 1.5s ease-in-out infinite alternate;
+    }
+</style>
 </head>
-<body class="bg-gray-900 text-white antialiased">
+<body class="bg-slate-900 text-slate-200 antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
